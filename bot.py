@@ -3,9 +3,9 @@ import time
 from lyricsgenius import Genius
 
 # Sets the genius api key
-genius = Genius(
-    "kvhw2q6GLoLyZ5f6001-b5WsWCGDpAPp6nWx1jhO8UGStl6kiTAQUPISwyxT0qp9", timeout=60
-)
+with open("geniusapi.txt", "r") as apitxt:
+    api = apitxt.read()
+    genius = Genius(api, timeout=60)
 
 
 # Makes a function for getting the current unix timestamp
@@ -85,19 +85,31 @@ async def ooga(ctx):
     await ctx.respond("You used the ooga command!")
 
 
+# * Discord bot command for enabling/disabling the logging feature
 @bot.command(
     description="Disables or Enables the logging feature until the bot restarts"
 )
 async def log(ctx):
-    global logging
-    if logging:
-        logging = False
-        await ctx.respond("You disabled logging")
+    # Retrieves the user who executed the command
+    user = ctx.author
+    # Sets the role we need the user to have to execute the command
+    role = discord.utils.get(ctx.guild.roles, name="Cool People")
+    # ! Do not remove this if statement, if removed, the bot will allow anyone to enable/disable logging
+    # Checks if the role we set is in the rolelist of the user who executed the command, if the user is not authorised, give a proper error message
+    if role in user.roles:
+        # Checks if logging is true, then set it to false, if false, then set it to true, with a message to respond to the user
+        global logging
+        if logging:
+            logging = False
+            await ctx.respond("You disabled logging")
+        else:
+            logging = True
+            await ctx.respond("You enabled logging")
     else:
-        logging = True
-        await ctx.respond("You enabled logging")
+        await ctx.respond("You do not have the permissions to execute this command!")
 
 
+# * Discord bot command for searching lyrics
 @bot.command(description="Searches for lyrics!")
 async def lyrics(ctx, *, song):
     await ctx.respond(f"Searching lyrics for song: {song}")
@@ -125,6 +137,7 @@ async def lyrics(ctx, *, song):
             await ctx.channel.send(embed=embed)
 
 
+# ! Do not remove this line as it runs the bot
 with open("token.txt", "r") as tokentxt:
     token = tokentxt.read()
     bot.run(token)
